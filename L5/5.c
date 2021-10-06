@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "list-5.h"
+#include "list.h"
 
-void insert_l(List*);
+/* void insert_l(List*); */
 
-int main(){
+/* int main(){
 
     List l1 = NULL;
     List l2 = NULL;
@@ -21,8 +21,8 @@ int main(){
     freeListRec(&l2);
     freeListRec(&l3);
     return 0;
-}
-
+} */
+/* 
 void insert_l(List* l){
     int n;
     scanf("%d", &n);
@@ -31,4 +31,4 @@ void insert_l(List* l){
         scanf("%d", &n);
     }
     return;
-}
+} */

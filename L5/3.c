@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "list-3.h"
+#include "list.h"
 
-int main() {
+/* int main() {
     int n;
     scanf("%d", &n);
     List l = NULL;
@@ -22,4 +22,4 @@ int main() {
     print_l(l);
     freeListRec(&l);
     return 0;
-}
+} */
