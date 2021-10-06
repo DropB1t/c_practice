@@ -4,7 +4,7 @@
 int** in_mat(int*, int*);
 void free_mat(int**, int);
 
-int main() {
+/* int main() {
     int r, c;
     int** m = in_mat(&r, &c);
     
@@ -13,7 +13,7 @@ int main() {
     free_mat(m,r);
     m = NULL;
     return 0;
-}
+} */
 
 int** in_mat(int* r, int* c) {
     scanf("%d %d", r, c);
@@ -23,9 +23,9 @@ int** in_mat(int* r, int* c) {
         printf("Errore di memoria");
         exit(420);
     }
-    for (int i = 0; i < r; i++) {
+    for (int i = 0; i < *r; i++) {
         mat[i] = (int*)calloc(*c, sizeof(int));
-        for (int j = 0; j < c; j++) {
+        for (int j = 0; j < *c; j++) {
             scanf("%d", &mat[i][j]);
         }
     }
