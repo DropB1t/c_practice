@@ -2,18 +2,17 @@
 
 #include "list.h"
 
-/* void insert_l(List*);
+void insert_l(List*);
 
 int main() {
-    int n;
     List l = NULL;
+
     insert_l(&l);
-    scanf("%d", &n);
-    
-    in_after_four(&l, n);
+
+    infront_even(&l);
 
     print_l(l);
-
+    freeListRec(&l);
     return 0;
 }
 
@@ -21,8 +20,8 @@ void insert_l(List* l) {
     int n;
     scanf("%d", &n);
     while (n >= 0) {
-        insertBottom(&(*l), n);
+        in_list(&(*l), n);
         scanf("%d", &n);
     }
     return;
-} */
+}

@@ -5,15 +5,14 @@
 /* void insert_l(List*);
 
 int main() {
-    int n;
     List l = NULL;
+
     insert_l(&l);
-    scanf("%d", &n);
-    
-    in_after_four(&l, n);
+
+    fill_missing(&l);
 
     print_l(l);
-
+    freeListRec(&l);
     return 0;
 }
 
@@ -21,7 +20,7 @@ void insert_l(List* l) {
     int n;
     scanf("%d", &n);
     while (n >= 0) {
-        insertBottom(&(*l), n);
+        insertOrd_inverse(&(*l), n);
         scanf("%d", &n);
     }
     return;

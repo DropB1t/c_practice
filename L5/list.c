@@ -67,10 +67,80 @@ void insertOrd(List* l, int x) {
     return;
 }
 
-void in_after_four(List* l,int v){
-    Node* c = *l, *prev = NULL;
+void insertOrd_inverse(List* l, int x) {
+    Node *prev, *succ;
+    prev = NULL;
+    succ = *l;
+    while (succ != NULL && succ->v > x) {
+        prev = succ;
+        succ = succ->next;
+    }
+    Node* new = (Node*)malloc(sizeof(Node));
+    if (new == NULL) {
+        printf("Errore di inserimento\n");
+        exit(0);
+    }
+    new->v = x;
+    new->next = succ;
+    if (prev != NULL)
+        prev->next = new;
+    else
+        *l = new;
+    return;
+}
+
+void fill_missing(List* l){
+    if(*l == NULL)
+        return;
+    Node *prev, *succ;
+    int flag = 0;
+    prev = *l;
+    succ = (*l)->next;
+    while (succ != NULL) {
+        if((prev->v-1)>succ->v){
+            Node* new = (Node*)malloc(sizeof(Node));
+            if (new == NULL) {
+                printf("Errore di inserimento\n");
+                exit(0);
+            }
+            new->v = prev->v-1;
+            new->next = succ;
+            prev->next = new;
+            flag = 1;
+        }
+        if(flag == 1){
+            prev = prev->next;
+            flag = 0;
+        }else{
+            prev = succ;
+            succ = succ->next;
+        }
+    }
+    return;
+}
+
+void infront_even(List* l){
+    if(*l == NULL)
+        return;
+    if((*l)->v%2 == 0){
+        Node* new = (Node*)malloc(sizeof(Node));
+        if (new == NULL) {
+            printf("Errore di inserimento\n");
+            exit(0);
+        }
+        Node* mem = *l;
+        new->v = -1;
+        new->next = *l;
+        *l = new;
+        return infront_even(&mem->next);
+    }
+    return infront_even(&(*l)->next);
+}
+
+void in_after_four(List* l, int v) {
+    Node *c = *l, *prev = NULL;
     for (int i = 0; i < 4; i++) {
-        if(c == NULL){
+        if (c == NULL) {
             break;
         }
         prev = c;
@@ -83,9 +153,9 @@ void in_after_four(List* l,int v){
     }
     new->v = v;
     new->next = c;
-    if(prev != NULL){
+    if (prev != NULL) {
         prev->next = new;
-    }else{
+    } else {
         *l = new;
     }
     return;
@@ -112,7 +182,7 @@ void del_val(List* l, int v) {
 
 void del_n(List* l, int n) {
     for (int i = 0; i < n; i++) {
-        if(*l == NULL){
+        if (*l == NULL) {
             return;
         }
         Node* c = *l;
@@ -149,6 +219,22 @@ void intersec(List l1, List l2, List* l) {
     return;
 }
 
+void join_l(List l1,List l2,List* l3){
+    Node* c1 = l1;
+    while (c1 != NULL) {
+        insertOrd(&(*l3), c1->v);
+        c1 = c1->next;
+    }
+    free(c1);
+    Node* c2 = l2;
+    while (c2 != NULL) {
+        insertOrd(&(*l3), c2->v);
+        c2 = c2->next;
+    }
+    free(c2);
+    return;
+}
+
 int lenght(List l) {
     Node* c = l;
     int cout = 0;
@@ -179,6 +265,20 @@ int calcoloNElementi(List l) {
         c = c->next;
     }
     return count;
+}
+
+int prod_between(List l, int N, int M) {
+    if(l == NULL)
+        return -1;
+    Node* c = l;
+    int prod = 1;
+    while (c != NULL) {
+        if (c->v > N && c->v < M) {
+            prod *= c->v;
+        }
+        c = c->next;
+    }
+    return prod;
 }
 
 void print_l(List l) {
