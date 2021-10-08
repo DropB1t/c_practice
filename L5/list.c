@@ -89,6 +89,19 @@ void insertOrd_inverse(List* l, int x) {
     return;
 }
 
+boolean is_ord(List l){
+    Node* c = l;
+
+    while (c != NULL) {
+        if (c->next != NULL && c->v >= c->next->v) {
+            return false;
+        }
+        c = c->next;
+    }
+
+    return true;
+}
+
 void fill_missing(List* l){
     if(*l == NULL)
         return;
@@ -191,6 +204,26 @@ void del_n(List* l, int n) {
     }
 }
 
+void del_multiple(List* l, int num){
+    Node* curr = *l;
+    Node* prev = NULL;
+
+    while (curr != NULL) {
+        if(curr->v % num == 0){
+            curr = curr->next;
+            if (prev != NULL) {
+                prev->next = curr;
+            } else {
+                *l = curr;
+            }
+            continue;
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+    return;
+}
+
 int check_val(List l, int v) {
     Node* c = l;
     while (c != NULL) {
@@ -281,6 +314,22 @@ int prod_between(List l, int N, int M) {
     return prod;
 }
 
+int even_v(List l){
+    if(l == NULL)
+        return -1;
+    if(l->v%2 == 0)
+        return l->v;
+    even_v(l->next);
+}
+
+int odd_v(List l){
+    if(l == NULL)
+        return -1;
+    if(l->v%2 != 0)
+        return l->v;
+    even_v(l->next);
+}
+
 void print_l(List l) {
     Node* c = l;
     printf("List: ");
@@ -298,6 +347,25 @@ void print_rawL(List l) {
         printf("%d\n", c->v);
         c = c->next;
     }
+    return;
+}
+
+void print_rec(List* l){
+    if(*l == NULL){
+        printf("NULL\n");
+        return;
+    }
+    printf("%d->",(*l)->v);
+    print_rec(&(*l)->next);
+    return;
+}
+
+void print_inverse_rec(List* l){
+    if(*l == NULL){
+        return;
+    }
+    print_inverse_rec(&(*l)->next);
+    printf("%d->",(*l)->v);
     return;
 }
 

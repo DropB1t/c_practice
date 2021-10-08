@@ -9,9 +9,12 @@ int main() {
 
     insert_l(&l);
 
-    infront_even(&l);
+    if(is_ord(l) == true)
+        printf("True\n");
+    else
+        printf("False\n");
 
-    print_l(l);
+    //print_l(l);
     freeListRec(&l);
     return 0;
 }
@@ -20,7 +23,7 @@ void insert_l(List* l) {
     int n;
     scanf("%d", &n);
     while (n >= 0) {
-        in_list(&(*l), n);
+        insertBottom(&(*l), n);
         scanf("%d", &n);
     }
     return;
