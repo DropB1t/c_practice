@@ -67,8 +67,13 @@ typedef flist* FileList;
 
 int addFile(FileList* fl ,const char* filename);
 void free_v(VersionList* v);
-int removeVersion (FileList* fl, const char* filename, int versionID);
+int removeFile(FileList* fl ,const char* filename);
+int removeVersion(FileList* fl, const char* filename, int versionID);
 VersionList getHist(FileList fl, const char* filename);
+FileList loadFileList(const char* file);
+void freeFileList(FileList* fl);
+int addVersion(FileList* fl, const char* filename, int versionID, time_t timestamp);
+int saveFileList(FileList f, const char* file);
 
 int main(void) {
 	char fname[100],command[200];
@@ -139,17 +144,17 @@ int addFile(FileList* fl ,const char* filename){
     int exist = 0;
     while (tmp != NULL)
     {
-        if(strcmp(tmp->filename,filename) == 0)
+        if(strcmp(tmp->filename,filename) == 0){
             exist = 1;
+            break;
+        }
         tmp = tmp->next;
     }
     if(exist)
         return 1;
-    FILE* file = fopen(filename,"r");
-    if (!file)
-        return 1;
-    fclose(file);
+    
     flist* f = malloc(sizeof(flist));
+    f->filename = malloc(strlen(filename));
     strcpy(f->filename,filename);
     f->v = NULL;
     f->next = *fl;
@@ -164,7 +169,7 @@ int addVersion(FileList* fl, const char* filename, int versionID, time_t timesta
     {
         if(strcmp(tmp->filename,filename) == 0){
             exist = 1;
-            continue;
+            break;
         }
         tmp = tmp->next;
     }
@@ -188,7 +193,7 @@ int removeFile(FileList* fl ,const char* filename){
     {
         if(strcmp(tmp->filename,filename) == 0){
             exist = 1;
-            continue;
+            break;
         }
         pred = tmp;
         tmp = tmp->next;
@@ -205,10 +210,146 @@ int removeFile(FileList* fl ,const char* filename){
     return 0;
 }
 
+int removeVersion(FileList* fl, const char* filename, int versionID){
+    flist * tmp = *fl;
+    int exist = 0;
+    while (tmp != NULL)
+    {
+        if(strcmp(tmp->filename,filename) == 0){
+            exist = 1;
+            break;
+        }
+        tmp = tmp->next;
+    }
+    if(!exist)
+        return 1;
+    exist = 0;
+    version* v = tmp->v;
+    version* pred = NULL;
+    while (v != NULL)
+    {
+        if(v->ID == versionID){
+            exist = 1;
+            break;
+        }
+        pred = v;
+        v = v->next;
+    }
+    if(!exist)
+        return 2;
+    if(pred){
+        pred->next = v->next;
+    }
+    v->next = NULL;
+    free(v);
+    return 0;
+}
+
+VersionList getHist(FileList fl, const char* filename){
+    flist * tmp = fl;
+    int exist = 0;
+    while (tmp != NULL)
+    {
+        if(strcmp(tmp->filename,filename) == 0){
+            exist = 1;
+            break;
+        }
+        tmp = tmp->next;
+    }
+    if(!exist)
+        return NULL;
+    return tmp->v;
+}
+
+void freeFileList(FileList* fl){
+    if(*fl == NULL)
+        return;
+    freeFileList(&((*fl)->next));
+    removeFile(fl,(*fl)->filename);
+    free(*fl);
+    *fl = NULL;
+    return;
+}
+
+FileList loadFileList(const char* file){
+    FILE* fl = fopen(file,"r");
+    if (!fl)
+        return NULL;
+    FileList f = NULL;
+    char *line = NULL;
+    size_t len = 0;
+    while (getline(&line, &len, fl) != -1){
+        printf("%s", line);
+
+        char *token;
+        token = strtok(line, ":");
+        printf("Token:%s\n", token);
+        if(token != NULL){
+            addFile(&f,token);
+        }else{ return NULL; }
+        while( (token = strtok(NULL, ";")) != NULL ) {
+            if(!token){ return NULL; }
+            printf( "Token:%s\n", token );
+            int id;
+            time_t data;
+            char* res = malloc(1);
+            memcpy(res,&token[0],1);
+            id = atoi(res);
+            memcpy(res,&token[2],10);
+            data = (time_t)atoi(res);
+            addVersion(&f,f->filename,id,data);
+        }
+        free(token);
+    }
+
+    fclose(fl);
+    free(line);
+    
+    return f;
+}
+
+int saveFileList(FileList f, const char* file){
+    if(!f || !file){  return 1;}
+    FILE* fl = fopen(file,"w");
+    if (!fl)
+        return 1;
+    
+    flist * tmp = f;
+    char* line;
+    while (tmp != NULL)
+    {   
+        line = malloc(strlen(tmp->filename)+1);
+        strcat(line,tmp->filename);
+        strcat(line,":");
+        v_toString(tmp->v,line);
+        
+        tmp = tmp->next;
+    }
+
+    return 0;
+}
+
+void v_toString(VersionList* v,char* str){
+    if(*v == NULL)
+        return;
+    char* id = "\0";
+    char* data = "\0";
+    sprintf(id,"%d",(*v)->ID);
+    strcat(str,id);
+    strcat(str,",");
+    sprintf(id,"%d",(int)(*v)->data);
+    strcat(str,data);
+    if(((*v)->next) != NULL)
+        strcat(str,";");
+    v_toString(&((*v)->next),str);
+    return;
+}
+
 void free_v(VersionList* v){
     if(*v == NULL)
         return;
     free_v(&((*v)->next));
     free(*v);
     *v = NULL;
+    return;
 }
