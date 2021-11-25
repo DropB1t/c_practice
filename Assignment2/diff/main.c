@@ -22,6 +22,7 @@ int diff(const char* f1, const char* f2);
 int count_lines(const char* f);
 char ** fill_arr(char** ln,FILE *fl);
 int check_diff(char ** a, char** b, int n1, int n2);
+void free_arr(char** arr, int n);
 
 int main(void) {
   char f1[100],f2[100];
@@ -55,6 +56,10 @@ int diff(const char* f1, const char* f2){
 
     int res1 = check_diff(lines1,lines2,n1,n2);
     int res2 = check_diff(lines2,lines1,n2,n1);
+
+    free_arr(lines1,n1);
+    free_arr(lines2,n2);
+
     if(res1 || res2){
         return 1;
     }
@@ -70,7 +75,6 @@ int check_diff(char ** a, char** b, int n1, int n2){
         check = 0;
         for (size_t j = 0; j < n2; j++)
         {
-            //printf("S1: %s\n S2: %s",a[i],b[j]);
             if (strcmp(a[i],b[j]) == 0){
                 check = 1;
             }
@@ -86,13 +90,11 @@ int check_diff(char ** a, char** b, int n1, int n2){
 char ** fill_arr(char** ln,FILE *fl){
     char * line = NULL;
     size_t len = 0;
-    ssize_t read;
+    ssize_t read = 0;
     int i = 0;
-    while ((read = getline(&line, &len, fl)) != -1) {
-        ln[i] = malloc((read + 1) * sizeof(char));
-        strcpy(ln[i], line);
-        //printf("Retrieved line of length %zu:\n", read);
-        //printf("%s", line);
+    while (read >= 0) {
+        read = getline(&line, &len, fl);
+        ln[i] = strdup(line);
         i++;
     }
     return ln;
@@ -117,4 +119,12 @@ FILE * f_open(const char* f){
 	if (!fl)
         return NULL;
     return fl;
+}
+
+void free_arr(char** arr, int n){
+    for (int i = 0; i < n; i++)
+    {
+        free(arr[i]);
+    }
+    return;
 }
