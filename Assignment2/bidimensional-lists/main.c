@@ -65,6 +65,7 @@ struct f{
 typedef struct f flist;
 typedef flist* FileList;
 
+int addFile_tail(FileList* fl ,const char* filename);
 int addFile(FileList* fl ,const char* filename);
 void free_v(VersionList* v);
 int removeFile(FileList* fl ,const char* filename);
@@ -141,6 +142,34 @@ int main(void) {
 	}
 }
 
+int addFile_tail(FileList* fl ,const char* filename){
+    flist *tmp = *fl;
+    flist *pred = NULL;
+    int exist = 0;
+    while (tmp != NULL)
+    {
+        if(strcmp(tmp->filename,filename) == 0){
+            exist = 1;
+            break;
+        }
+        pred = tmp;
+        tmp = tmp->next;
+    }
+    if(exist)
+        return 1;
+    
+    flist* f = malloc(sizeof(flist));
+    f->filename = malloc(strlen(filename)+1);
+    strcpy(f->filename,filename);
+    f->v = NULL;
+    f->next = NULL;
+    if(pred)
+        pred->next = f;
+    else
+        *fl = f;
+    return 0;
+}
+
 int addFile(FileList* fl ,const char* filename){
     flist *tmp = *fl;
     int exist = 0;
@@ -184,9 +213,14 @@ int addVersion(FileList* fl, const char* filename, int versionID, time_t timesta
     version* v = malloc(sizeof(version));
     v->data = timestamp;
     v->ID = versionID;
-    v->next = tmp->v;
-    tmp->v = v;
-
+    v->next = NULL;
+    if(tmp->v != NULL){
+        version* tail = tmp->v;
+        while (tail->next != NULL){ tail = tail->next; }
+        tail->next = v;
+    }else{
+        tmp->v = v;
+    }
     return 0;
 }
 
@@ -286,19 +320,24 @@ FileList loadFileList(const char* file){
         char *token;
         token = strtok(line, ":");
         if(token != NULL){
-            addFile(&f,token);
+            addFile_tail(&f,token);
         }else{ return NULL; }
         while( (token = strtok(NULL, ";")) != NULL ) {
             if(!token){ return NULL; }
-            //printf( "Token:%s\n", token );
             int id;
             time_t data;
-            char* res = malloc(1);
-            memcpy(res,&token[0],1);
+
+            char* res = malloc(2);
+            strncpy(res, &token[0], 1);
             id = atoi(res);
-            memcpy(res,&token[2],10);
+
+            res = realloc(res,11);
+            strncpy(res, &token[2], 10);
             data = (time_t)atoi(res);
-            addVersion(&f,f->filename,id,data);
+            
+            flist * tmp = f;
+            while (tmp->next != NULL){ tmp = tmp->next; }
+            addVersion(&f,tmp->filename,id,data);
             free(res);
         }
         free(token);
@@ -325,26 +364,26 @@ int saveFileList(FileList f, const char* file){
 void rec_save(FileList tmp,FILE* fl,int n){
     if(tmp == NULL)
         return;
-    rec_save(tmp->next,fl,n+1);
     char line[10000];
     sprintf(line,"%s:",tmp->filename);
     v_toString(&(tmp->v),line);
     if(tmp->v != NULL)
         line[strlen(line)-1] = '\0';
-    if(n!=0){
+    if(tmp->next != NULL){
         strcat(line,"\n");
     }
     fputs(line,fl);
+    rec_save(tmp->next,fl,n+1);
     return;
 }
 
 void v_toString(VersionList* v,char* str){
     if(*v == NULL)
         return;
-    v_toString(&((*v)->next),str);
     char* info = malloc((*v)->ID+(int)((*v)->data)+3);
     sprintf(info,"%d,%d;",(*v)->ID,(int)((*v)->data));
     strcat(str,info);
+    v_toString(&((*v)->next),str);
     return;
 }
 
