@@ -283,11 +283,8 @@ FileList loadFileList(const char* file){
     char *line = NULL;
     size_t len = 0;
     while (getline(&line, &len, fl) != -1){
-        //printf("%s", line);
-
         char *token;
         token = strtok(line, ":");
-        //printf("Token:%s\n", token);
         if(token != NULL){
             addFile(&f,token);
         }else{ return NULL; }
@@ -302,6 +299,7 @@ FileList loadFileList(const char* file){
             memcpy(res,&token[2],10);
             data = (time_t)atoi(res);
             addVersion(&f,f->filename,id,data);
+            free(res);
         }
         free(token);
     }
@@ -328,18 +326,15 @@ void rec_save(FileList tmp,FILE* fl,int n){
     if(tmp == NULL)
         return;
     rec_save(tmp->next,fl,n+1);
-    char* line = malloc(strlen(tmp->filename)+3);
-    strcpy(line,tmp->filename);
-    strcat(line,":");
+    char line[10000];
+    sprintf(line,"%s:",tmp->filename);
     v_toString(&(tmp->v),line);
     if(tmp->v != NULL)
         line[strlen(line)-1] = '\0';
     if(n!=0){
-        line = realloc(line,strlen(line)+1);
-        strcat(line, "\n");
+        strcat(line,"\n");
     }
     fputs(line,fl);
-    free(line);
     return;
 }
 
@@ -347,17 +342,9 @@ void v_toString(VersionList* v,char* str){
     if(*v == NULL)
         return;
     v_toString(&((*v)->next),str);
-    char id[50];
-    char data[50];
-    sprintf(id,"%d",(*v)->ID);
-    str = realloc(str,strlen(str)+strlen(id)+2);
-    strcat(str,id);
-    strcat(str,",");
-    sprintf(data,"%d",(int)((*v)->data));
-    str = realloc(str,strlen(str)+strlen(data)+1);
-    strcat(str,data);
-    str = realloc(str,strlen(str)+2);
-    strcat(str,";");
+    char* info = malloc((*v)->ID+(int)((*v)->data)+3);
+    sprintf(info,"%d,%d;",(*v)->ID,(int)((*v)->data));
+    strcat(str,info);
     return;
 }
 
