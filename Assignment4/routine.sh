@@ -1,18 +1,20 @@
-function isInteger {
+#!/bin/bash
+
+isInteger() {
     re='^[0-9]+$'
     if ! [[ $1 =~ $re ]] ; then
     echo "Error: $1 is not a positive Integer number."; exit 1
     fi
 }
 
-function isFloat {
+isFloat() {
     re='^[0-9]+([.][0-9]+)?$'
     if ! [[ $1 =~ $re ]] ; then
     echo "Error: $1 is not a positive Float number."; exit 1
     fi
 }
 
-function dirSize {
+dirSize() {
     sizes=( $(find $1 -maxdepth 1 -type f -printf '%s\n') )
     res=0
     for i in "${sizes[@]}"
