@@ -58,8 +58,6 @@ Assignment2/bidimensional-lists/main
 
 *.out
 
-.vscode/
-
 !*.*
 
 !*/
