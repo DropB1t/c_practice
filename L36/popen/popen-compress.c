@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
     int r;
     if ((r = isRegular(filename, NULL)) == 1)
     {
-      FILE *fin;
-      if ((fin = fopen(filename, "r")) == NULL)
+      FILE *fin = fopen(filename, "r");
+      if (fin == NULL)
       {
         perror("fopen");
         continue;
@@ -106,16 +106,15 @@ int main(int argc, char *argv[])
 
       while (!feof(fin))
       {
-
         size_t sz = fread(buffer, 1, CHUNKSIZE, fin);
         if (sz > 0)
-          // Qui leggo con read dalla pipe (Oppure uso le dup)
-          // write(STDOUT_FILENO,buffer,sz)
           /* if (fwrite(buffer, 1, sz, fpipe) != sz)
           {
             perror("fwrite");
             break;
           } */
+          // Qui leggo con read dalla pipe (Oppure uso le dup)
+          // write(STDOUT_FILENO,buffer,sz)
           if (write(STDOUT_FILENO, buffer, sz) != sz)
           {
             perror("fwrite");
@@ -124,6 +123,7 @@ int main(int argc, char *argv[])
       }
       // Qui chiudo la pipe
       close(channel[1]);
+      fclose(fin);
       /* if (pclose(fpipe) == -1)
       {
         perror("pclose");

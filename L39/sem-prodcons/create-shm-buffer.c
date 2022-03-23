@@ -10,7 +10,7 @@
 #include <sys/types.h>
 
 
-#include <shm-buffer.h>
+#include "shm-buffer.h"
 
 
 int main(int argc, char *argv[]) {
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
   if (argc == 3) {
     shm_unlink(argv[1]);
-    sem_unlink(STARTUP_SEM_NAME);
+    //sem_unlink(STARTUP_SEM_NAME);
     printf("removed POSIX shared buffer with name %s\n", argv[1]);
     return 0;
   }
