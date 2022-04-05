@@ -3,7 +3,6 @@
 *.vscode
 
 # Object files
-*.o
 *.ko
 *.obj
 *.elf
@@ -61,3 +60,7 @@ Assignment2/bidimensional-lists/main
 !*.*
 
 !*/
+
+!Makefile
+
+*.o
