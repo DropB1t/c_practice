@@ -9,9 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": [
-                "5"
-            ],
+            "args": ["test.txt"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}/..",
             "environment": [],
