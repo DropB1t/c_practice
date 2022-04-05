@@ -50,23 +50,22 @@ void *TH1(void *arg)
 
 			while ((read = getline(&line, &len, fp)) != -1)
 			{
-				printf("Retrieved line of length %zu:\n", read);
-				printf("%s", line);
-				fflush(stdout);
+				//printf("Retrieved line of length %zu:\n", read);
+				//printf("%s", line);
+				//fflush(stdout);
 				char *msg = malloc(strlen(line)+1);
 				strcpy(msg,line);
+				msg[strlen(msg)-1]='\0';
 				push(th_struct->q, (void *)msg);
 			}
 
 			fclose(fp);
-			//if (line)
-				//free(line);
 		}
 		if (r == 0)
 			fprintf(stderr, "%s is not a regular file\n", filename);
 	}
 
-	char exit[7] = ">exit<";
+	char *exit = ">exit<";
 	push(th_struct->q, (void *)exit);
 	//free(line);
 
@@ -81,11 +80,11 @@ void *TH2(void *arg)
 
 	while (1)
 	{
-		char *line = pop(th_struct->q1);
+		char *line = (char *)pop(th_struct->q1);
 		if (strncmp(line, ">exit<", strlen(">exit<")) == 0)
 		{
 			char *msg = malloc(strlen(line)+1);
-			strcpy(msg,line);
+			msg = strcpy(msg,line);
 			push(th_struct->q2, (void *)msg);
 			//free(line);
 			break;
@@ -100,11 +99,9 @@ void *TH2(void *arg)
 				push(th_struct->q2, token);
 			} while ((token = strtok(NULL, " ")) != NULL);
 		}
-
-		//free(token);
 	}
 
-	char exit[7] = ">exit<";
+	char *exit = ">exit<";
 	push(th_struct->q2, (void *)exit);
 
 	DBG("TH2 [%ld] closing\n", pthread_self());
@@ -118,18 +115,20 @@ void *TH3(void *arg)
 
 	while (1)
 	{
-		char *str = pop(q);
+		char *str = (char *)pop(q);
 		if (strncmp(str, ">exit<", strlen(">exit<")) == 0)
 		{
-			//free(str);
+			free(str);
 			break;
 		}
-		fprintf(stdout, "Stringa -> %s\n",str);
+		fprintf(stdout, "%s\n",str);
 		fflush(stdout);
 		//free(str);
+		
 	}
 
 	DBG("TH3 [%ld] closing\n", pthread_self());
+	
 	return NULL;
 }
 
@@ -177,11 +176,10 @@ int main(int argc, char const *argv[])
 			return (EXIT_FAILURE);
 		}
 	}
-
 	deleteQueue(q1);
 	deleteQueue(q2);
 	free(th1_struct);
 	free(th2_struct);
-
+	printf("Esco\n");
 	return 0;
 }
