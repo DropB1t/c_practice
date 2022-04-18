@@ -49,7 +49,7 @@ TARGETS		= pipeline
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -o $@ $<
 
-pipeline: pipeline.o unboundedqueue.o
+pipeline: pipeline.o unboundedqueue.o icl_hash.o
 	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $^ $(LIBS)
 all		: $(TARGETS)
 

@@ -1,18 +1,21 @@
-#define  _GNU_SOURCE
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include "utils/includes/util.h"
 #include "unboundedqueue.h"
+#include "icl_hash.h"
 
 #define N_THREAD 3
 #define MAX_LINE_LEN 1024
 
+#define STRDUP(str, lit) strcpy(str = malloc(strlen(lit) + 1), lit)
+
 typedef struct
 {
 	int argc;
-	const char **argv;
+	char **argv;
 	Queue_t *q;
 } thread1_struct;
 
@@ -27,18 +30,12 @@ void *TH1(void *arg)
 	thread1_struct *th_struct = (thread1_struct *)arg;
 	assert(th_struct);
 
-	for (int i = 1; i < th_struct->argc; i++)
+	for (int i = 0; i < th_struct->argc; i++)
 	{
 		const char *filename = th_struct->argv[i];
 		int r;
-		size_t filesize;
-		if ((r = isRegular(filename, &filesize)) == 1)
+		if ((r = isRegular(filename, NULL)) == 1)
 		{
-			/* if (filesize > MAX_FILE_SIZE)
-			{
-				fprintf(stderr, "Il file %s e' troppo grande, il limite e' %d byte\n", filename, MAX_FILE_SIZE);
-				continue;
-			} */
 			FILE *fp;
 			char *line = NULL;
 			size_t len = 0;
@@ -50,15 +47,12 @@ void *TH1(void *arg)
 
 			while ((read = getline(&line, &len, fp)) != -1)
 			{
-				//printf("Retrieved line of length %zu:\n", read);
-				//printf("%s", line);
-				//fflush(stdout);
-				char *msg = malloc(strlen(line)+1);
-				strcpy(msg,line);
-				msg[strlen(msg)-1]='\0';
-				push(th_struct->q, (void *)msg);
+				char *msg;
+				STRDUP(msg, line);
+				msg[strlen(msg) - 1] = '\0';
+				push(th_struct->q, msg);
 			}
-
+			free(line);
 			fclose(fp);
 		}
 		if (r == 0)
@@ -66,9 +60,7 @@ void *TH1(void *arg)
 	}
 
 	char *exit = ">exit<";
-	push(th_struct->q, (void *)exit);
-	//free(line);
-
+	push(th_struct->q, exit);
 	DBG("TH1 [%ld] closing\n", pthread_self());
 	return NULL;
 }
@@ -83,10 +75,9 @@ void *TH2(void *arg)
 		char *line = (char *)pop(th_struct->q1);
 		if (strncmp(line, ">exit<", strlen(">exit<")) == 0)
 		{
-			char *msg = malloc(strlen(line)+1);
-			msg = strcpy(msg,line);
-			push(th_struct->q2, (void *)msg);
-			//free(line);
+			char *msg;
+			STRDUP(msg, line);
+			push(th_struct->q2, msg);
 			break;
 		}
 
@@ -101,9 +92,6 @@ void *TH2(void *arg)
 		}
 	}
 
-	char *exit = ">exit<";
-	push(th_struct->q2, (void *)exit);
-
 	DBG("TH2 [%ld] closing\n", pthread_self());
 	return NULL;
 }
@@ -113,6 +101,9 @@ void *TH3(void *arg)
 	Queue_t *q = (Queue_t *)arg;
 	assert(q);
 
+	char *val = "1";
+	icl_hash_t *h = icl_hash_create(256, &hash_pjw, &string_compare);
+
 	while (1)
 	{
 		char *str = (char *)pop(q);
@@ -121,14 +112,18 @@ void *TH3(void *arg)
 			free(str);
 			break;
 		}
-		fprintf(stdout, "%s\n",str);
-		fflush(stdout);
-		//free(str);
-		
+		if (icl_hash_find(h, str) == NULL)
+		{
+			fprintf(stdout, "%s\n", str);
+			fflush(stdout);
+			icl_hash_insert(h, str, val);
+		}
 	}
 
+	icl_hash_destroy(h, NULL, NULL);
+
 	DBG("TH3 [%ld] closing\n", pthread_self());
-	
+
 	return NULL;
 }
 
@@ -142,8 +137,16 @@ int main(int argc, char const *argv[])
 	assert(q2);
 
 	thread1_struct *th1_struct = malloc(sizeof(thread1_struct));
-	th1_struct->argc = argc;
-	th1_struct->argv = argv;
+
+	int N = argc - 1;
+	th1_struct->argc = N;
+	th1_struct->argv = malloc(sizeof(char *) * (N));
+	for (size_t i = 0; i < N; i++)
+	{
+		STRDUP(th1_struct->argv[i], argv[i + 1]);
+	}
+
+	// th1_struct->argv = argv;
 	th1_struct->q = q1;
 
 	if (pthread_create(&th[0], NULL, TH1, th1_struct) != 0)
@@ -178,8 +181,12 @@ int main(int argc, char const *argv[])
 	}
 	deleteQueue(q1);
 	deleteQueue(q2);
+	for (size_t i = 0; i < N; i++)
+	{
+		free(th1_struct->argv[i]);
+	}
+	free(th1_struct->argv);
 	free(th1_struct);
 	free(th2_struct);
-	printf("Esco\n");
 	return 0;
 }
