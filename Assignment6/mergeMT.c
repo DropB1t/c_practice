@@ -68,10 +68,15 @@ static void *Worker(void *arg)
                 return NULL;
             }
             close(fd);
-            
+
             long *arr_ptr = malloc(sizeof(long) * t_struct->N);
             memcpy(arr_ptr, arr, sizeof(long) * t_struct->N);
             SYSCALL_EXIT("munmap", fd, munmap(arr, filesize), "munmap - mapfile_and_copyto");
+
+            for (size_t i = 0; i < t_struct->N; i++)
+            {
+                printf("->%ld\n", arr_ptr[i]);
+            }
 
             qsort(arr_ptr, t_struct->N, sizeof(long), cmpfunc);
 
@@ -79,8 +84,8 @@ static void *Worker(void *arg)
             {
                 printf("->%ld\n", arr_ptr[i]);
             }
-            //push(t_struct->ptrs, "Ciao");
-            //printf("Return -> %d",push(t_struct->ptrs, arr_ptr));
+            // push(t_struct->ptrs, "Ciao");
+            // printf("Return -> %d",push(t_struct->ptrs, arr_ptr));
         }
         if (r == 0)
             fprintf(stderr, "%s is not a regular file\n", f_path);
@@ -135,7 +140,6 @@ int main(int argc, char const *argv[])
 
     th_struct->dirname = strdup(dirname);
     th_struct->N = N;
-
 
     th_struct->q = initQueue();
     assert(th_struct->q);
@@ -206,7 +210,7 @@ int main(int argc, char const *argv[])
 
     long *merged = NULL;
     int len = 0;
-    //printf("Qui %ld\n", length(th_struct->ptrs));
+    // printf("Qui %ld\n", length(th_struct->ptrs));
     for (size_t i = 0; i < 0; i++)
     {
         len = th_struct->N * i;
