@@ -1,35 +1,57 @@
-#include <signal.h>
-#include <stdlib.h>
+#include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
+#include <errno.h>
 
-int main(int argc, char const *argv[])
+/* Simple error handling functions */
+
+#define handle_error_en(en, msg) \
+    do                           \
+    {                            \
+        errno = en;              \
+        perror(msg);             \
+        exit(EXIT_FAILURE);      \
+    } while (0)
+
+static void *
+sig_thread(void *arg)
 {
-    struct sigaction s;
-    sigset_t set;
+    sigset_t *set = arg;
+    int s, sig;
 
-    EC(sigfillset(&set), "fillset");
-    EC(pthread_sigmask(SIG_SETMASK, &set, NULL), "sigmask");
-
-    EC(sigaction(SIGINT, NULL, &s), "sigaction1");
-    s.sa_handler = handlerINT;
-    EC(sigaction(SIGINT, &s, NULL), "sigaction2");
-
-    s.sa_handler = handlerTSTP;
-    EC(sigaction(SIGTSTP, &s, NULL), "sigaction3");
-
-    s.sa_handler = handlerALRM;
-    EC(sigaction(SIGALRM, &s, NULL), "sigaction4");
-
-    sigdelset(&set, SIGINT);
-    sigdelset(&set, SIGALRM);
-    sigdelset(&set, SIGTSTP);
-
-    alarm(10);
-    while (1)
+    for (;;)
     {
-        pause();
+        s = sigwait(set, &sig);
+        if (s != 0)
+            handle_error_en(s, "sigwait");
+        printf("Signal handling thread got signal %d\n", sig);
     }
+}
 
-    return 0;
+int main(int argc, char *argv[])
+{
+    pthread_t thread;
+    sigset_t set;
+    int s;
+
+    /* Block SIGQUIT and SIGUSR1; other threads created by main()
+       will inherit a copy of the signal mask. */
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGQUIT);
+    sigaddset(&set, SIGUSR1);
+    s = pthread_sigmask(SIG_BLOCK, &set, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_sigmask");
+
+    s = pthread_create(&thread, NULL, &sig_thread, (void *)&set);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    /* Main thread carries on to create other threads and/or do
+       other work */
+
+    pause(); /* Dummy pause so we can test program */
 }

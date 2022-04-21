@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "util.h"
+#include <util.h>
 #include <unboundedqueue.h>
 
 /**
