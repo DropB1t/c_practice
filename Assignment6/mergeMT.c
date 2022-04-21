@@ -73,11 +73,6 @@ static void *Worker(void *arg)
             memcpy(arr_ptr, arr, sizeof(long) * t_struct->N);
             SYSCALL_EXIT("munmap", fd, munmap(arr, filesize), "munmap - mapfile_and_copyto");
 
-            for (size_t i = 0; i < t_struct->N; i++)
-            {
-                printf("->%ld\n", arr_ptr[i]);
-            }
-
             qsort(arr_ptr, t_struct->N, sizeof(long), cmpfunc);
 
             for (size_t i = 0; i < t_struct->N; i++)
